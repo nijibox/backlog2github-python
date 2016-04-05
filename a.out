@@ -1,33 +1,7 @@
 #!/usr/bin/env python
 import os
 import ConfigParser
-import requests
-
-
-class BacklogApi(object):
-    """docstring for BacklogApi"""
-    def __init__(self, space_id, api_key=None):
-        self.space_id = space_id
-        self.api_key = api_key
-
-    @property
-    def endpoint_url(self):
-        return 'https://{}.backlog.jp'.format(
-            self.space_id,
-        )
-
-    def request(self, path, params={}, method='GET'):
-        if not path.startswith('/'):
-            raise Exception('Request path must be started /')
-        url = '{}{}'.format(self.endpoint_url, path)
-        if self.api_key is not None:
-            if method != 'GET':
-                params['apiKey'] = self.api_key
-            else:
-                url = '{}?apiKey={}'.format(url, self.api_key)
-        session = requests.Session()
-        session_method = getattr(session, method.lower())
-        return session_method(url, params=params)
+from backlog import Api as BacklogApi
 
 
 CONFIG_DEFAULT_PATH = os.path.join(
@@ -39,5 +13,5 @@ config = ConfigParser.ConfigParser()
 config.read(CONFIG_DEFAULT_PATH)
 
 backlog = BacklogApi(config.get('Backlog', 'space_id'), config.get('Backlog', 'api_key'))
-resp = backlog.request('/api/v2/space').json()
+resp = backlog.request('space').json()
 print(resp['name'])
