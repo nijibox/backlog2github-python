@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import ConfigParser
-from backlog import Api as BacklogApi
+from backlog import Project, Api as BacklogApi
 
 
 CONFIG_DEFAULT_PATH = os.path.join(
@@ -13,5 +13,10 @@ config = ConfigParser.ConfigParser()
 config.read(CONFIG_DEFAULT_PATH)
 
 backlog = BacklogApi(config.get('Backlog', 'space_id'), config.get('Backlog', 'api_key'))
-resp = backlog.request('space').json()
-print(resp['name'])
+# resp = backlog.request('space').json()
+# print(resp['name'])
+# issues = backlog.get_issues()
+project = Project.from_api('INFRA', backlog)
+issues = project.get_issues()
+for issue in issues:
+    print(issue['summary'])

@@ -28,4 +28,21 @@ class Api(object):
             else:
                 url = '{}?apiKey={}'.format(url, self.api_key)
         session_method = getattr(self.session, method.lower())
-        return session_method(url, params=params)
+        return session_method(url, params=params).json()
+
+    def get_issues(self, params={}):
+        path = '/issues'
+        return self.request(path, params)
+
+
+class Project(Api):
+    @classmethod
+    def from_api(cls, project_key, api):
+        resp = api.request('/projects/' + project_key)
+        instance = cls(api.space_id, api.api_key)
+        instance.project_id = resp['id']
+        return instance
+
+    def get_issues(self, params={}):
+        params['projectId[]'] = self.project_id
+        return super(Project, self).get_issues(params)
