@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 import os
 import ConfigParser
 import argparse
+import yaml
 from backlog import Project, Api as BacklogApi
 
 
@@ -24,6 +26,12 @@ backlog = BacklogApi(config.get('Backlog', 'space_id'), config.get('Backlog', 'a
 if '-' in args.key:
     # key is issue
     issue = backlog.get_issue(args.key)
+    issue_dir = './{}'.format(args.key)
+    if not os.path.exists(issue_dir):
+        os.makedirs(issue_dir)
+    detail_path = os.path.join(issue_dir, 'Detail.yml')
+    with open(detail_path, 'w') as fp:
+        yaml.safe_dump(issue, fp, allow_unicode=True, default_flow_style=False)
     print(issue['summary'])
     print('========')
     print(issue['description'])
