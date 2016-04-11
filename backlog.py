@@ -34,6 +34,9 @@ class Api(object):
         path = '/issues'
         return self.request(path, params)
 
+    def get_issue(self, key, params={}):
+        path = '/issues/{}'.format(key)
+        return self.request(path, params)
 
 class Project(Api):
     @classmethod
