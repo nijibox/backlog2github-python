@@ -31,10 +31,26 @@ if '-' in args.key:
         os.makedirs(issue_dir)
     detail_path = os.path.join(issue_dir, 'Detail.yml')
     with open(detail_path, 'w') as fp:
-        yaml.safe_dump(issue, fp, allow_unicode=True, default_flow_style=False)
-    print(issue['summary'])
-    print('========')
-    print(issue['description'])
+        yaml.safe_dump(issue._data, fp, allow_unicode=True, default_flow_style=False)
+    # Dump comments
+    comments_dir = '{}/{}'.format(issue_dir, 'comments')
+    if not os.path.exists(comments_dir):
+        os.makedirs(comments_dir)
+    comments = issue.get_comments()
+    for comment in comments:
+        comment_path = os.path.join(comments_dir, '{}.yml'.format(comment._data['id']))
+        with open(comment_path, 'w') as fp:
+            yaml.safe_dump(comment._data, fp, allow_unicode=True, default_flow_style=False)
+    # Dump attachments
+    attachment_dir = '{}/{}'.format(issue_dir, 'attachments')
+    if not os.path.exists(attachment_dir):
+        os.makedirs(attachment_dir)
+    attachments = issue.get_attachments()
+    for attachment in attachments:
+        attachment.download(attachment_dir)
+    # print(issue['summary'])
+    # print('========')
+    # print(issue['description'])
 else:
     # key is project
     project = Project.from_api(args.key, backlog)
