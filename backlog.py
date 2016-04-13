@@ -2,6 +2,7 @@
 """Backlog v2 API
 """
 import re
+import os
 import shutil
 import requests
 
@@ -68,6 +69,17 @@ class Project(Api):
 
 
 class Issue(Model):
+    def init_workspace(self, base_dir):
+        self.work_dir = '{}/{}'.format(base_dir, self._data['issueKey'])
+        if not os.path.exists(self.work_dir):
+            os.makedirs(self.work_dir)
+        self.comments_dir = '{}/{}'.format(self.work_dir, 'comments')
+        if not os.path.exists(self.comments_dir):
+            os.makedirs(self.comments_dir)
+        self.attachment_dir = '{}/{}'.format(self.work_dir, 'attachments')
+        if not os.path.exists(self.attachment_dir):
+            os.makedirs(self.attachment_dir)
+
     def get_comments(self):
         path = '/issues/{}/comments'.format(self._data['id'])
         resp = self._api.request(path, params={}, method='GET').json()
@@ -84,7 +96,9 @@ class Issue(Model):
             attachments.append(Attachment(self._api, attachment, parent=self))
         return attachments
 
-    def download_attatchments(self, save_dir):
+    def download_attatchments(self, save_dir=None):
+        if save_dir is None:
+            save_dir = self.attachment_dir
         attachments = self.get_attachments()
         for attachment in attachments:
             attachment.download(save_dir)
