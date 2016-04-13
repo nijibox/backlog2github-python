@@ -84,6 +84,11 @@ class Issue(Model):
             attachments.append(Attachment(self._api, attachment, parent=self))
         return attachments
 
+    def download_attatchments(self, save_dir):
+        attachments = self.get_attachments()
+        for attachment in attachments:
+            attachment.download(save_dir)
+
 
 class Comment(Model):
     pass

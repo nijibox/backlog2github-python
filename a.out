@@ -45,9 +45,7 @@ if '-' in args.key:
     attachment_dir = '{}/{}'.format(issue_dir, 'attachments')
     if not os.path.exists(attachment_dir):
         os.makedirs(attachment_dir)
-    attachments = issue.get_attachments()
-    for attachment in attachments:
-        attachment.download(attachment_dir)
+    issue.download_attatchments(attachment_dir)
     # print(issue['summary'])
     # print('========')
     # print(issue['description'])
