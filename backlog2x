@@ -44,5 +44,5 @@ else:
     project = Project.from_api(args.key, backlog)
     issues = project.get_issues()
     for issue in issues:
-        print(u'{}: {}'.format(issue['issueKey'], issue['summary']))
+        print(u'{}: {}'.format(issue._data['issueKey'], issue._data['summary']))
         # print('\n')
