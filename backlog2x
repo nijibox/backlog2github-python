@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import ConfigParser
 import argparse
+import time
 import yaml
 from backlog import Project, Api as BacklogApi
 
@@ -32,6 +33,7 @@ if '--' in args.key:
         issue = backlog.get_issue(issueKey)
         issue.init_workspace('.')
         issue.dump_all()
+        time.sleep(1)
 elif '-' in args.key:
     # key is issue
     issue = backlog.get_issue(args.key)
