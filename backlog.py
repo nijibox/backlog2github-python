@@ -5,6 +5,7 @@ import re
 import os
 import shutil
 import requests
+import yaml
 
 
 class Api(object):
@@ -55,17 +56,20 @@ class Model(object):
         return super(Model, self).__gettattr__(key)
 
 
-class Project(Api):
+class Project(Model):
     @classmethod
     def from_api(cls, project_key, api):
-        resp = api.request('/projects/' + project_key)
-        instance = cls(api.space_id, api.api_key)
-        instance.project_id = resp['id']
+        data = api.request('/projects/' + project_key).json()
+        instance = cls(api, data)
         return instance
 
     def get_issues(self, params={}):
-        params['projectId[]'] = self.project_id
-        return super(Project, self).get_issues(params).json()
+        params['projectId[]'] = self._data['id']
+        resp = self._api.request('/issues', params).json()
+        issues = []
+        for issue in resp:
+            issues.append(Issue(self._api, issue, parent=self))
+        return issues
 
 
 class Issue(Model):
@@ -102,6 +106,19 @@ class Issue(Model):
         attachments = self.get_attachments()
         for attachment in attachments:
             attachment.download(save_dir)
+
+    def dump_all(self):
+        detail_path = os.path.join(self.work_dir, 'Detail.yml')
+        with open(detail_path, 'w') as fp:
+            yaml.safe_dump(self._data, fp, allow_unicode=True, default_flow_style=False)
+        # Dump comments
+        comments = self.get_comments()
+        for comment in comments:
+            comment_path = os.path.join(self.comments_dir, '{}.yml'.format(comment._data['id']))
+            with open(comment_path, 'w') as fp:
+                yaml.safe_dump(comment._data, fp, allow_unicode=True, default_flow_style=False)
+        # Dump attachments
+        self.download_attatchments()
 
 
 class Comment(Model):

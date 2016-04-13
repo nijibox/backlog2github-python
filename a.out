@@ -23,21 +23,20 @@ args = parser.parse_args()
 
 backlog = BacklogApi(config.get('Backlog', 'space_id'), config.get('Backlog', 'api_key'))
 
-if '-' in args.key:
+if '--' in args.key:
+    project = Project.from_api(args.key[:-2], backlog)
+    max_issue = project.get_issues(params={'sort': 'created', 'order': 'desc', 'count': 1})[0]
+    maxIssueKey = int(max_issue._data['issueKey'].split('-')[1])
+    for key in range(1, maxIssueKey+1):
+        issueKey = '{}-{}'.format(project._data['projectKey'], key)
+        issue = backlog.get_issue(issueKey)
+        issue.init_workspace('.')
+        issue.dump_all()
+elif '-' in args.key:
     # key is issue
     issue = backlog.get_issue(args.key)
     issue.init_workspace('.')
-    detail_path = os.path.join(issue.work_dir, 'Detail.yml')
-    with open(detail_path, 'w') as fp:
-        yaml.safe_dump(issue._data, fp, allow_unicode=True, default_flow_style=False)
-    # Dump comments
-    comments = issue.get_comments()
-    for comment in comments:
-        comment_path = os.path.join(issue.comments_dir, '{}.yml'.format(comment._data['id']))
-        with open(comment_path, 'w') as fp:
-            yaml.safe_dump(comment._data, fp, allow_unicode=True, default_flow_style=False)
-    # Dump attachments
-    issue.download_attatchments()
+    issue.dump_all()
 else:
     # key is project
     project = Project.from_api(args.key, backlog)
