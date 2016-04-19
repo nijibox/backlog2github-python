@@ -7,6 +7,7 @@ import shutil
 import requests
 import yaml
 from urllib import unquote
+import time
 
 
 class Api(object):
@@ -119,6 +120,7 @@ class Issue(Model):
             with open(comment_path, 'w') as fp:
                 yaml.safe_dump(comment._data, fp, allow_unicode=True, default_flow_style=False)
         # Dump attachments
+        time.sleep(0.1)
         self.download_attatchments()
 
 
