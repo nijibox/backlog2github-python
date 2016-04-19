@@ -45,7 +45,7 @@ if '--' in args.key:
             continue
         issue.init_workspace(args.output)
         issue.dump_all()
-        progress.display(key+1)
+        progress.display(key)
         time.sleep(1)
     progress.end()
 elif '-' in args.key:
