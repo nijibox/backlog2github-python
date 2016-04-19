@@ -6,6 +6,7 @@ import os
 import shutil
 import requests
 import yaml
+from urllib import unquote
 
 
 class Api(object):
@@ -132,7 +133,7 @@ class Attachment(Model):
             )
         d = resp.headers['content-disposition']
         fname = re.findall("''(.+)", d)
-        save_path = '{}/{}'.format(save_dir, fname[0])
+        save_path = '{}/{}'.format(save_dir, unquote(fname[0]))
         with open(save_path, 'wb') as fp:
             for chunk in resp.iter_content(1024):
                 fp.write(chunk)
