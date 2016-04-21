@@ -50,6 +50,17 @@ def fetch_issues(args, config, backlog):
             print(u'{}: {}'.format(issue._data['issueKey'], issue._data['summary']))
             # print('\n')
 
+
+def fetch_wiki(args, config, backlog):
+    project = Project.from_api(args.key, backlog)
+    wikis = project.get_wikis()
+    save_dir = os.path.join(args.output, 'wikis')
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    for wiki in wikis:
+        wiki.dump(save_dir)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--conf', type=str, default=CONFIG_DEFAULT_PATH)
 parser.add_argument('-o', '--output', type=str, default='.')
@@ -61,8 +72,8 @@ parser_issue.add_argument('key', type=str)
 parser_issue.add_argument('--filter', type=str, required=False)
 
 parser_wiki = subparsers.add_parser('wiki')
+parser_wiki.set_defaults(func=fetch_wiki)
 parser_wiki.add_argument('key', type=str)
-parser_wiki.add_argument('--filter', type=str, required=False)
 
 args = parser.parse_args()
 

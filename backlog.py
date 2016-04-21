@@ -73,6 +73,30 @@ class Project(Model):
             issues.append(Issue(self._api, issue, parent=self))
         return issues
 
+    def count_wiki(self):
+        """Wikiページを取得する
+        """
+        params = {'projectIdOrKey': self._data['id']}
+        resp = self._api.request('/wikis/count', params).json()
+        return int(resp['count'])
+
+    def get_wikis(self):
+        """
+        """
+        params = {'projectIdOrKey': self._data['id']}
+        resp = self._api.request('/wikis', params).json()
+        wikis = []
+        for wiki_ in resp:
+            wikis.append(self.get_wiki(wiki_['id']))
+        return wikis
+
+
+    def get_wiki(self, wiki_id):
+        """
+        """
+        resp = self._api.request('/wikis/{}'.format(wiki_id), {}).json()
+        return Wiki(self._api, resp, parent=self)
+
 
 class Issue(Model):
     def init_workspace(self, base_dir):
@@ -139,3 +163,10 @@ class Attachment(Model):
         with open(save_path, 'wb') as fp:
             for chunk in resp.iter_content(1024):
                 fp.write(chunk)
+
+
+class Wiki(Model):
+    def dump(self, save_dir):
+        dump_path = os.path.join(save_dir, self._data['name']) + '.yml'
+        with open(dump_path, 'w') as fp:
+            yaml.safe_dump(self._data, fp, allow_unicode=True, default_flow_style=False)
