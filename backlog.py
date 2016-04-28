@@ -168,5 +168,38 @@ class Attachment(Model):
 class Wiki(Model):
     def dump(self, save_dir):
         dump_path = os.path.join(save_dir, self._data['name']) + '.yml'
+        dump_dir = os.path.dirname(dump_path)
+        if not os.path.exists(dump_dir):
+            os.makedirs(dump_dir)
         with open(dump_path, 'w') as fp:
             yaml.safe_dump(self._data, fp, allow_unicode=True, default_flow_style=False)
+
+    def get_attachments(self):
+        path = '/wikis/{}/attachments'.format(self._data['id'])
+        resp = self._api.request(path, params={}, method='GET').json()
+        attachments = []
+        for attachment in resp:
+            attachments.append(WikiAttachment(self._api, attachment, parent=self))
+        return attachments
+
+    def download_attatchments(self, save_dir=None):
+        if save_dir is None:
+            save_dir = os.path.join(save_dir, self._data['name']) + '.files'
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        attachments = self.get_attachments()
+        for attachment in attachments:
+            attachment.download(save_dir)
+
+
+class WikiAttachment(Model):
+    def download(self, save_dir):
+        resp = self._api.request(
+            '/wikis/{}/attachments/{}'.format(self._parent._data['id'], self._data['id'])
+            )
+        d = resp.headers['content-disposition']
+        fname = re.findall("''(.+)", d)
+        save_path = '{}/{}'.format(save_dir, unquote(fname[0]))
+        with open(save_path, 'wb') as fp:
+            for chunk in resp.iter_content(1024):
+                fp.write(chunk)
