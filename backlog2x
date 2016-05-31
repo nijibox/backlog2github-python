@@ -28,7 +28,7 @@ def fetch_issues(args, config, backlog):
             if os.path.exists(issue_dir):
                 continue
             issue = backlog.get_issue(issueKey)
-            if 'issueKey' not in issue._data:
+            if 'issueKey' in issue:
                 continue
             issue.init_workspace(args.output)
             issue.dump_all()
@@ -38,7 +38,7 @@ def fetch_issues(args, config, backlog):
     elif '-' in args.key:
         # key is issue
         issue = backlog.get_issue(args.key)
-        if 'issueKey' not in issue._data:
+        if 'issueKey' not in issue:
             exit(0)
         issue.init_workspace(args.output)
         issue.dump_all()
