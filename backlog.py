@@ -58,6 +58,12 @@ class Model(object):
         self._data = data
         self._parent = parent
 
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
     def __gettattr__(self, key):
         if key in self._data:
             return self._data[key]
