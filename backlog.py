@@ -52,10 +52,11 @@ class Model(object):
         self._data = data
         self._parent = parent
 
-    def __gettattr__(self, key):
-        if key in self._data:
-            return self._data[key]
-        return super(Model, self).__gettattr__(key)
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
 
 
 class Project(Model):
@@ -66,7 +67,7 @@ class Project(Model):
         return instance
 
     def get_issues(self, params={}):
-        params['projectId[]'] = self._data['id']
+        params['projectId[]'] = self['id']
         resp = self._api.request('/issues', params).json()
         issues = []
         for issue in resp:
@@ -76,14 +77,14 @@ class Project(Model):
     def count_wiki(self):
         """Wikiページを取得する
         """
-        params = {'projectIdOrKey': self._data['id']}
+        params = {'projectIdOrKey': self['id']}
         resp = self._api.request('/wikis/count', params).json()
         return int(resp['count'])
 
     def get_wikis(self):
         """
         """
-        params = {'projectIdOrKey': self._data['id']}
+        params = {'projectIdOrKey': self['id']}
         resp = self._api.request('/wikis', params).json()
         wikis = []
         for wiki_ in resp:
@@ -100,7 +101,7 @@ class Project(Model):
 
 class Issue(Model):
     def init_workspace(self, base_dir):
-        self.work_dir = '{}/{}'.format(base_dir, self._data['issueKey'])
+        self.work_dir = '{}/{}'.format(base_dir, self['issueKey'])
         if not os.path.exists(self.work_dir):
             os.makedirs(self.work_dir)
         self.comments_dir = '{}/{}'.format(self.work_dir, 'comments')
@@ -111,7 +112,7 @@ class Issue(Model):
             os.makedirs(self.attachment_dir)
 
     def get_comments(self):
-        path = '/issues/{}/comments'.format(self._data['id'])
+        path = '/issues/{}/comments'.format(self['id'])
         resp = self._api.request(path, params={}, method='GET').json()
         comments = []
         for comment in resp:
@@ -119,7 +120,7 @@ class Issue(Model):
         return comments
 
     def get_attachments(self):
-        path = '/issues/{}/attachments'.format(self._data['id'])
+        path = '/issues/{}/attachments'.format(self['id'])
         resp = self._api.request(path, params={}, method='GET').json()
         attachments = []
         for attachment in resp:
@@ -140,7 +141,7 @@ class Issue(Model):
         # Dump comments
         comments = self.get_comments()
         for comment in comments:
-            comment_path = os.path.join(self.comments_dir, '{}.yml'.format(comment._data['id']))
+            comment_path = os.path.join(self.comments_dir, '{}.yml'.format(comment['id']))
             with open(comment_path, 'w') as fp:
                 yaml.safe_dump(comment._data, fp, allow_unicode=True, default_flow_style=False)
         # Dump attachments
@@ -155,7 +156,7 @@ class Comment(Model):
 class Attachment(Model):
     def download(self, save_dir):
         resp = self._api.request(
-            '/issues/{}/attachments/{}'.format(self._parent._data['id'], self._data['id'])
+            '/issues/{}/attachments/{}'.format(self._parent['id'], self['id'])
             )
         d = resp.headers['content-disposition']
         fname = re.findall("''(.+)", d)
@@ -167,7 +168,7 @@ class Attachment(Model):
 
 class Wiki(Model):
     def dump(self, save_dir):
-        dump_path = os.path.join(save_dir, self._data['name']) + '.yml'
+        dump_path = os.path.join(save_dir, self['name']) + '.yml'
         dump_dir = os.path.dirname(dump_path)
         if not os.path.exists(dump_dir):
             os.makedirs(dump_dir)
@@ -175,7 +176,7 @@ class Wiki(Model):
             yaml.safe_dump(self._data, fp, allow_unicode=True, default_flow_style=False)
 
     def get_attachments(self):
-        path = '/wikis/{}/attachments'.format(self._data['id'])
+        path = '/wikis/{}/attachments'.format(self['id'])
         resp = self._api.request(path, params={}, method='GET').json()
         attachments = []
         for attachment in resp:
@@ -184,7 +185,7 @@ class Wiki(Model):
 
     def download_attatchments(self, save_dir=None):
         if save_dir is None:
-            save_dir = os.path.join(save_dir, self._data['name']) + '.files'
+            save_dir = os.path.join(save_dir, self['name']) + '.files'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         attachments = self.get_attachments()
@@ -195,7 +196,7 @@ class Wiki(Model):
 class WikiAttachment(Model):
     def download(self, save_dir):
         resp = self._api.request(
-            '/wikis/{}/attachments/{}'.format(self._parent._data['id'], self._data['id'])
+            '/wikis/{}/attachments/{}'.format(self._parent['id'], self['id'])
             )
         d = resp.headers['content-disposition']
         fname = re.findall("''(.+)", d)
