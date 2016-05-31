@@ -29,12 +29,18 @@ class Api(object):
             path = '/' + path
         url = '{}{}'.format(self.endpoint_url, path)
         if self.api_key is not None:
-            if method != 'GET':
+            if method == 'GET':
                 params['apiKey'] = self.api_key
             else:
                 url = '{}?apiKey={}'.format(url, self.api_key)
-        session_method = getattr(self.session, method.lower())
-        return session_method(url, params=params)
+        if method == 'GET':
+            return self.session.get(url, params=params)
+        elif method == 'POST':
+            return self.session.post(url, data=params)
+        else:
+            return None
+        # print(session_method)
+        # return session_method(url, params=params)
 
     def get_issues(self, params={}):
         path = '/issues'
