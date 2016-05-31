@@ -56,13 +56,17 @@ class Model(object):
     def __init__(self, api, data, parent=None):
         self._api = api
         self._data = data
+        self._dirty = {}
         self._parent = parent
 
+    def __contains__(self, key):
+        return key in self._data or key in self._dirty
+
     def __getitem__(self, key):
-        return self._data[key]
+        return self._dirty.get(key, self._data[key])
 
     def __setitem__(self, key, value):
-        self._data[key] = value
+        self._dirty[key] = value
 
 
 class Project(Model):
