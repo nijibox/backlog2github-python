@@ -26,11 +26,11 @@ def fetch_issues(args, config, backlog):
     if '--' in args.key:
         project = Project.from_api(args.key[:-2], backlog)
         max_issue = project.get_issues(params={'sort': 'created', 'order': 'desc', 'count': 1})[0]
-        maxIssueKey = int(max_issue._data['issueKey'].split('-')[1])
+        maxIssueKey = int(max_issue['issueKey'].split('-')[1])
         progress = ProgressText(max_value=maxIssueKey)
         progress.display(0)
         for key in range(1, maxIssueKey+1):
-            issueKey = '{}-{}'.format(project._data['projectKey'], key)
+            issueKey = '{}-{}'.format(project['projectKey'], key)
             issue_dir = os.path.join(args.output, issueKey)
             if os.path.exists(issue_dir):
                 continue
@@ -54,7 +54,7 @@ def fetch_issues(args, config, backlog):
         project = Project.from_api(args.key, backlog)
         issues = project.get_issues()
         for issue in issues:
-            print(u'{}: {}'.format(issue._data['issueKey'], issue._data['summary']))
+            print(u'{}: {}'.format(issue['issueKey'], issue['summary']))
             # print('\n')
 
 
