@@ -68,6 +68,36 @@ def fetch_wiki(args, config, backlog):
         wiki.dump(save_dir)
 
 
+def sync_wiki(args, config, backlog):
+    import fnmatch
+    project = Project.from_api(args.key, backlog)
+    saved_dir = os.path.join(args.output, 'wikis')
+    current_wikis = project.get_wikis()
+
+    matches = {}
+    for root, dirnames, filenames in os.walk(saved_dir):
+        for filename in fnmatch.filter(filenames, '*.yml'):
+            filepath = os.path.join(root, filename)
+            filekey = filepath.replace(saved_dir + '/', '')
+            filekey = normalize_str('NFC', filekey.encode('utf8'))
+            matches[filekey[:-4]] = filepath
+
+    import codecs
+    for wiki in current_wikis:
+        wiki_name = wiki['name'].encode('utf8')
+        if wiki_name not in matches:
+            continue
+        with codecs.open(matches[wiki_name], encoding='utf8') as fp:
+            origin = yaml.load(fp)
+        if wiki['content'] == origin['content']:
+            continue
+        wiki['content'] = origin['content']
+        print(wiki_name)
+        print('\tYou update')
+        wiki.save()
+    return
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--conf', type=str, default=CONFIG_DEFAULT_PATH)
 parser.add_argument('-o', '--output', type=str, default='.')
@@ -81,6 +111,11 @@ parser_issue.add_argument('--filter', type=str, required=False)
 parser_wiki = subparsers.add_parser('wiki')
 parser_wiki.set_defaults(func=fetch_wiki)
 parser_wiki.add_argument('key', type=str)
+
+parser_wiki = subparsers.add_parser('syncwiki')
+parser_wiki.set_defaults(func=sync_wiki)
+parser_wiki.add_argument('key', type=str)
+
 
 args = parser.parse_args()
 

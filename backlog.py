@@ -37,6 +37,8 @@ class Api(object):
             return self.session.get(url, params=params)
         elif method == 'POST':
             return self.session.post(url, data=params)
+        elif method == 'PATCH':
+            return self.session.patch(url, data=params)
         else:
             return None
         # print(session_method)
@@ -177,6 +179,22 @@ class Attachment(Model):
 
 
 class Wiki(Model):
+    def save(self):
+        if 'content' not in self._dirty:
+            return
+        path = '/wikis/{}'.format(self['id'])
+        params = {
+            'name': self['name'],
+            'content': self['content'],
+        }
+        resp = self._api.request(path, params=params, method='PATCH')
+        if resp.status_code == 200:
+            self._data['content'] = self._dirty['content']
+            del self._dirty['content']
+            print('OK')
+            return
+        return
+
     def dump(self, save_dir):
         dump_path = os.path.join(save_dir, self['name']) + '.yml'
         dump_dir = os.path.dirname(dump_path)
