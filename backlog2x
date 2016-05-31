@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+# -*- coding:utf8 -*-
 from __future__ import unicode_literals
 import os
 import ConfigParser
 import argparse
 import time
 import yaml
+from unicodedata import normalize
 from backlog import Project, Api as BacklogApi
 from progress import ProgressText
 
@@ -13,6 +15,11 @@ CONFIG_DEFAULT_PATH = os.path.join(
     os.path.dirname(__file__),
     'app.ini',
 )
+
+
+def normalize_str(form, str, encoding='utf8'):
+    s = normalize(form, str.decode(encoding))
+    return s.encode(encoding)
 
 
 def fetch_issues(args, config, backlog):
